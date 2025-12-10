@@ -1,5 +1,4 @@
 import axios from "axios";
-import { gunzipSync } from "zlib";
 
 /**
  * Bilibili video ID parser
@@ -75,23 +74,18 @@ export interface DanmakuItem {
 }
 
 /**
- * Get danmaku data from Bilibili API (protobuf format)
+ * Get danmaku data from Bilibili API (XML format)
  */
 export async function getDanmaku(cid: number): Promise<DanmakuItem[]> {
-  const response = await axios.get(`https://api.bilibili.com/x/v1/dm/list.so`, {
-    params: { oid: cid },
+  const response = await axios.get(`https://comment.bilibili.com/${cid}.xml`, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       Referer: "https://www.bilibili.com",
     },
-    responseType: "arraybuffer",
   });
 
-  const buffer = Buffer.from(response.data);
-  const decompressed = gunzipSync(buffer);
-
-  // Parse protobuf data (simplified XML format from Bilibili)
-  const xml = decompressed.toString("utf-8");
+  // Parse XML data from Bilibili
+  const xml = response.data;
   const danmakuList: DanmakuItem[] = [];
 
   // Match <d p="...">content</d> pattern
