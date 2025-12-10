@@ -25,4 +25,17 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Danmaku export history table (optional, for analytics)
+ * Tracks video exports for statistics and optimization
+ */
+export const exportHistory = mysqlTable("exportHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  videoId: varchar("videoId", { length: 32 }).notNull(), // BV or AV number
+  videoTitle: text("videoTitle"),
+  danmakuCount: int("danmakuCount").default(0).notNull(),
+  exportedAt: timestamp("exportedAt").defaultNow().notNull(),
+});
+
+export type ExportHistory = typeof exportHistory.$inferSelect;
+export type InsertExportHistory = typeof exportHistory.$inferInsert;
