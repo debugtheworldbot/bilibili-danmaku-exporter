@@ -23,6 +23,7 @@ export default function Home() {
   const [durationMarquee, setDurationMarquee] = useState(5);
   const [durationStill, setDurationStill] = useState(5);
   const [reduceComments, setReduceComments] = useState(false);
+  const [danmakuCoverage, setDanmakuCoverage] = useState<"full" | "half" | "quarter">("full");
 
   const getVideoInfoMutation = trpc.danmaku.getVideoInfo.useMutation({
     onSuccess: (data) => {
@@ -87,6 +88,7 @@ export default function Home() {
         durationMarquee,
         durationStill,
         reduceComments,
+        danmakuCoverage,
       },
     });
   };
@@ -283,6 +285,37 @@ export default function Home() {
                   <Label className="text-lg font-black">
                     防止弹幕重叠
                   </Label>
+                </div>
+              </div>
+
+              {/* Danmaku Coverage */}
+              <div className="space-y-4">
+                <Label className="text-lg font-black">弹幕覆盖范围</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <Button
+                    type="button"
+                    variant={danmakuCoverage === "full" ? "default" : "outline"}
+                    onClick={() => setDanmakuCoverage("full")}
+                    className="h-16 text-lg font-black border-2 border-black"
+                  >
+                    全屏
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={danmakuCoverage === "half" ? "default" : "outline"}
+                    onClick={() => setDanmakuCoverage("half")}
+                    className="h-16 text-lg font-black border-2 border-black"
+                  >
+                    1/2 屏幕
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={danmakuCoverage === "quarter" ? "default" : "outline"}
+                    onClick={() => setDanmakuCoverage("quarter")}
+                    className="h-16 text-lg font-black border-2 border-black"
+                  >
+                    1/4 屏幕
+                  </Button>
                 </div>
               </div>
             </div>

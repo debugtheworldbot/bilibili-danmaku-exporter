@@ -136,6 +136,7 @@ export interface AssOptions {
   durationMarquee: number; // seconds
   durationStill: number; // seconds
   reduceComments: boolean;
+  danmakuCoverage: "full" | "half" | "quarter"; // Coverage area for danmaku
 }
 
 /**
@@ -151,7 +152,16 @@ export function convertToAss(danmakuList: DanmakuItem[], options: AssOptions): s
     durationMarquee,
     durationStill,
     reduceComments,
+    danmakuCoverage,
   } = options;
+
+  // Calculate coverage area based on option
+  let coverageHeight = height;
+  if (danmakuCoverage === "half") {
+    coverageHeight = Math.floor(height / 2);
+  } else if (danmakuCoverage === "quarter") {
+    coverageHeight = Math.floor(height / 4);
+  }
 
   // Calculate alpha value for ASS (0-255, inverted)
   const assAlpha = Math.round((1 - alpha) * 255)
@@ -207,7 +217,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         scrollRows.push({ endTime: now + durationMarquee, row });
       }
 
-      const yPos = Math.min(row * (fontSize + 4) + fontSize, height - fontSize);
+      const yPos = Math.min(row * (fontSize + 4) + fontSize, coverageHeight - fontSize);
       const moveTag = `{\\move(${width},${yPos},-${dm.content.length * fontSize},${yPos})}`;
       const colorTag = color !== "&H00FFFFFF" ? `{\\c${color}}` : "";
 
@@ -229,7 +239,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         bottomRows.push({ endTime: now + durationStill, row });
       }
 
-      const yPos = height - (row + 1) * (fontSize + 4);
+      const yPos = height - Math.min((row + 1) * (fontSize + 4), height - coverageHeight);
       const posTag = `{\\an2\\pos(${width / 2},${yPos})}`;
       const colorTag = color !== "&H00FFFFFF" ? `{\\c${color}}` : "";
 
@@ -251,7 +261,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         topRows.push({ endTime: now + durationStill, row });
       }
 
-      const yPos = (row + 1) * (fontSize + 4);
+      const yPos = Math.min((row + 1) * (fontSize + 4), coverageHeight);
       const posTag = `{\\an8\\pos(${width / 2},${yPos})}`;
       const colorTag = color !== "&H00FFFFFF" ? `{\\c${color}}` : "";
 

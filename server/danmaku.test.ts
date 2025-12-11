@@ -74,6 +74,7 @@ describe("ASS Conversion", () => {
       durationMarquee: 5,
       durationStill: 5,
       reduceComments: false,
+      danmakuCoverage: "full" as const,
     };
 
     const ass = convertToAss(danmakuList, options);
@@ -109,6 +110,7 @@ describe("ASS Conversion", () => {
       durationMarquee: 5,
       durationStill: 5,
       reduceComments: false,
+      danmakuCoverage: "full" as const,
     };
 
     const ass = convertToAss(danmakuList, options);
@@ -142,6 +144,7 @@ describe("ASS Conversion", () => {
       durationMarquee: 5,
       durationStill: 5,
       reduceComments: false,
+      danmakuCoverage: "full" as const,
     };
 
     const ass = convertToAss(danmakuList, options);
@@ -175,6 +178,7 @@ describe("ASS Conversion", () => {
       durationMarquee: 5,
       durationStill: 5,
       reduceComments: false,
+      danmakuCoverage: "full" as const,
     };
 
     const ass = convertToAss(danmakuList, options);
@@ -195,11 +199,78 @@ describe("ASS Conversion", () => {
       durationMarquee: 8,
       durationStill: 6,
       reduceComments: true,
+      danmakuCoverage: "half" as const,
     };
 
     const ass = convertToAss(danmakuList, options);
 
     expect(ass).toContain("Microsoft YaHei");
     expect(ass).toContain(",36,"); // Font size in Style line
+  });
+
+  it("should handle half coverage correctly", () => {
+    const danmakuList: DanmakuItem[] = [
+      {
+        time: 10,
+        mode: 1,
+        fontSize: 25,
+        color: 0xffffff,
+        timestamp: 0,
+        pool: 0,
+        userId: "1",
+        rowId: "1",
+        content: "半屏弹幕",
+      },
+    ];
+
+    const options = {
+      width: 1920,
+      height: 1080,
+      fontName: "Arial",
+      fontSize: 25,
+      alpha: 0.8,
+      durationMarquee: 5,
+      durationStill: 5,
+      reduceComments: false,
+      danmakuCoverage: "half" as const,
+    };
+
+    const ass = convertToAss(danmakuList, options);
+
+    expect(ass).toContain("半屏弹幕");
+    expect(ass).toContain("\\move(");
+  });
+
+  it("should handle quarter coverage correctly", () => {
+    const danmakuList: DanmakuItem[] = [
+      {
+        time: 10,
+        mode: 1,
+        fontSize: 25,
+        color: 0xffffff,
+        timestamp: 0,
+        pool: 0,
+        userId: "1",
+        rowId: "1",
+        content: "四分之一屏弹幕",
+      },
+    ];
+
+    const options = {
+      width: 1920,
+      height: 1080,
+      fontName: "Arial",
+      fontSize: 25,
+      alpha: 0.8,
+      durationMarquee: 5,
+      durationStill: 5,
+      reduceComments: false,
+      danmakuCoverage: "quarter" as const,
+    };
+
+    const ass = convertToAss(danmakuList, options);
+
+    expect(ass).toContain("四分之一屏弹幕");
+    expect(ass).toContain("\\move(");
   });
 });

@@ -65,6 +65,7 @@ export const appRouter = router({
             durationMarquee: z.number().default(5),
             durationStill: z.number().default(5),
             reduceComments: z.boolean().default(false),
+            danmakuCoverage: z.enum(["full", "half", "quarter"]).default("full"),
           }),
         })
       )
