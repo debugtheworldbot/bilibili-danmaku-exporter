@@ -2,9 +2,9 @@ import axios from "axios";
 
 /**
  * Bilibili video ID parser
- * Supports BV, AV numbers and full URLs
+ * Supports BV, AV numbers, bangumi ep IDs and full URLs
  */
-export function parseVideoId(input: string): { type: "bv" | "av"; id: string } | null {
+export function parseVideoId(input: string): { type: "bv" | "av" | "ep"; id: string } | null {
   const trimmed = input.trim();
 
   // BV number pattern
@@ -12,20 +12,63 @@ export function parseVideoId(input: string): { type: "bv" | "av"; id: string } |
   if (bvMatch) {
     return { type: "bv", id: bvMatch[0] };
   }
-
-  // AV number pattern
-  const avMatch = trimmed.match(/av(\d+)/i);
+  // Try to match AV number
+  const avMatch = input.match(/av(\d+)/i);
   if (avMatch) {
     return { type: "av", id: avMatch[1] };
   }
 
+  // Try to match bangumi ep ID
+  const epMatch = input.match(/\/bangumi\/play\/ep(\d+)|ep(\d+)/i);
+  if (epMatch) {
+    return { type: "ep", id: epMatch[1] || epMatch[2] };
+  }
+
   return null;
+}/**
+ * Get bangumi episode info from Bilibili API
+ */
+export async function getBangumiInfo(epId: string) {
+  const response = await axios.get(`https://api.bilibili.com/pgc/view/web/season`, {
+    params: { ep_id: epId },
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      Referer: "https://www.bilibili.com",
+    },
+  });
+
+  if (response.data.code !== 0) {
+    throw new Error(`Failed to get bangumi info: ${response.data.message}`);
+  }
+
+  const episodeData = response.data.result.episodes.find(
+    (ep: any) => ep.id.toString() === epId
+  );
+
+  if (!episodeData) {
+    throw new Error(`Episode ${epId} not found`);
+  }
+
+  return {
+    cid: episodeData.cid,
+    title: episodeData.long_title || episodeData.title,
+    bvid: episodeData.bvid,
+    duration: episodeData.duration / 1000, // Convert ms to seconds
+    dimension: episodeData.dimension || { width: 1920, height: 1080 },
+    aid: episodeData.aid,
+    pic: episodeData.cover,
+    owner: { name: response.data.result.up_info?.name || "Unknown" },
+  };
 }
 
 /**
  * Get video info from Bilibili API
  */
-export async function getVideoInfo(videoId: { type: "bv" | "av"; id: string }) {
+export async function getVideoInfo(videoId: { type: "bv" | "av" | "ep"; id: string }) {
+  // Handle bangumi episodes
+  if (videoId.type === "ep") {
+    return getBangumiInfo(videoId.id);
+  }
   const params: Record<string, string> = {};
   if (videoId.type === "bv") {
     params.bvid = videoId.id;

@@ -31,6 +31,16 @@ describe("Bilibili Video ID Parser", () => {
     const result = parseVideoId("bv1xx411c7md");
     expect(result).toEqual({ type: "bv", id: "bv1xx411c7md" });
   });
+
+  it("should parse bangumi ep ID from full URL", () => {
+    const result = parseVideoId("https://www.bilibili.com/bangumi/play/ep331044");
+    expect(result).toEqual({ type: "ep", id: "331044" });
+  });
+
+  it("should parse bangumi ep ID from string", () => {
+    const result = parseVideoId("ep331044");
+    expect(result).toEqual({ type: "ep", id: "331044" });
+  });
 });
 
 describe("Danmaku Statistics", () => {
