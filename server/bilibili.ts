@@ -18,8 +18,8 @@ export function parseVideoId(input: string): { type: "bv" | "av" | "ep"; id: str
     return { type: "av", id: avMatch[1] };
   }
 
-  // Try to match bangumi ep ID
-  const epMatch = input.match(/\/bangumi\/play\/ep(\d+)|ep(\d+)/i);
+  // Try to match bangumi ep ID (support URLs with query parameters)
+  const epMatch = input.match(/\/bangumi\/play\/ep(\d+)|\bep(\d+)/i);
   if (epMatch) {
     return { type: "ep", id: epMatch[1] || epMatch[2] };
   }
