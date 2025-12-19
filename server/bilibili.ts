@@ -229,8 +229,14 @@ Style: Default,${fontName},${fontSize},&H${assAlpha}FFFFFF,&H${assAlpha}FFFFFF,&
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
 
-  // Track occupied rows for collision detection
-  const scrollRows: { endTime: number; row: number }[] = [];
+  // Calculate maximum available rows based on coverage height
+  const rowHeight = fontSize + 4;
+  const maxScrollRows = Math.floor(coverageHeight / rowHeight);
+  const maxTopRows = Math.floor(coverageHeight / rowHeight);
+  const maxBottomRows = Math.floor(coverageHeight / rowHeight);
+
+  // Track occupied rows for collision detection with end time
+  const scrollRows: { endTime: number; row: number; endX: number }[] = [];
   const topRows: { endTime: number; row: number }[] = [];
   const bottomRows: { endTime: number; row: number }[] = [];
 
@@ -246,18 +252,57 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       // Scrolling danmaku
       const endTime = formatAssTime(dm.time + durationMarquee);
 
-      // Find available row
+      // Find available row with collision detection
       let row = 0;
+      const now = dm.time;
+      const textWidth = dm.content.length * fontSize * 0.6; // Approximate text width
+      const speed = (width + textWidth) / durationMarquee; // Pixels per second
+      
       if (reduceComments) {
-        const now = dm.time;
-        const availableRows = scrollRows.filter((r) => r.endTime <= now);
-        if (availableRows.length > 0) {
-          row = availableRows[0].row;
-          scrollRows.splice(scrollRows.indexOf(availableRows[0]), 1);
-        } else {
-          row = scrollRows.length;
+        // Remove expired rows
+        for (let i = scrollRows.length - 1; i >= 0; i--) {
+          if (scrollRows[i].endTime <= now) {
+            scrollRows.splice(i, 1);
+          }
         }
-        scrollRows.push({ endTime: now + durationMarquee, row });
+
+        // Find first available row that won't collide
+        let foundRow = false;
+        for (let r = 0; r < maxScrollRows; r++) {
+          const occupiedInRow = scrollRows.filter((sr) => sr.row === r);
+          
+          if (occupiedInRow.length === 0) {
+            row = r;
+            foundRow = true;
+            break;
+          }
+          
+          // Check if there's enough space for this danmaku
+          let canUseRow = true;
+          for (const occupied of occupiedInRow) {
+            const timeGap = now - (occupied.endTime - durationMarquee);
+            const occupiedX = width - speed * timeGap;
+            
+            // If previous danmaku hasn't fully entered, collision will occur
+            if (occupiedX > width - textWidth) {
+              canUseRow = false;
+              break;
+            }
+          }
+          
+          if (canUseRow) {
+            row = r;
+            foundRow = true;
+            break;
+          }
+        }
+        
+        // If no row available, use a new row (will exceed coverage if needed)
+        if (!foundRow) {
+          row = Math.min(scrollRows.length, maxScrollRows - 1);
+        }
+        
+        scrollRows.push({ endTime: now + durationMarquee, row, endX: -textWidth });
       }
 
       const yPos = Math.min(row * (fontSize + 4) + fontSize, coverageHeight - fontSize);
@@ -270,15 +315,31 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       const endTime = formatAssTime(dm.time + durationStill);
 
       let row = 0;
+      const now = dm.time;
+      
       if (reduceComments) {
-        const now = dm.time;
-        const availableRows = bottomRows.filter((r) => r.endTime <= now);
-        if (availableRows.length > 0) {
-          row = availableRows[0].row;
-          bottomRows.splice(bottomRows.indexOf(availableRows[0]), 1);
-        } else {
-          row = bottomRows.length;
+        // Remove expired rows
+        for (let i = bottomRows.length - 1; i >= 0; i--) {
+          if (bottomRows[i].endTime <= now) {
+            bottomRows.splice(i, 1);
+          }
         }
+
+        // Find first available row
+        let foundRow = false;
+        for (let r = 0; r < maxBottomRows; r++) {
+          const occupied = bottomRows.find((br) => br.row === r);
+          if (!occupied) {
+            row = r;
+            foundRow = true;
+            break;
+          }
+        }
+        
+        if (!foundRow) {
+          row = Math.min(bottomRows.length, maxBottomRows - 1);
+        }
+        
         bottomRows.push({ endTime: now + durationStill, row });
       }
 
@@ -292,15 +353,31 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       const endTime = formatAssTime(dm.time + durationStill);
 
       let row = 0;
+      const now = dm.time;
+      
       if (reduceComments) {
-        const now = dm.time;
-        const availableRows = topRows.filter((r) => r.endTime <= now);
-        if (availableRows.length > 0) {
-          row = availableRows[0].row;
-          topRows.splice(topRows.indexOf(availableRows[0]), 1);
-        } else {
-          row = topRows.length;
+        // Remove expired rows
+        for (let i = topRows.length - 1; i >= 0; i--) {
+          if (topRows[i].endTime <= now) {
+            topRows.splice(i, 1);
+          }
         }
+
+        // Find first available row
+        let foundRow = false;
+        for (let r = 0; r < maxTopRows; r++) {
+          const occupied = topRows.find((tr) => tr.row === r);
+          if (!occupied) {
+            row = r;
+            foundRow = true;
+            break;
+          }
+        }
+        
+        if (!foundRow) {
+          row = Math.min(topRows.length, maxTopRows - 1);
+        }
+        
         topRows.push({ endTime: now + durationStill, row });
       }
 
