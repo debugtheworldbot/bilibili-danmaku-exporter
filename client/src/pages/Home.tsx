@@ -15,8 +15,16 @@ export default function Home() {
   const [danmakuStats, setDanmakuStats] = useState<any>(null);
   
   // ASS conversion options
-  const [width, setWidth] = useState(1920);
-  const [height, setHeight] = useState(1080);
+  const [resolution, setResolution] = useState<"1080p" | "2k" | "4k">("1080p");
+
+  // Resolution mapping
+  const resolutionMap = {
+    "1080p": { width: 1920, height: 1080 },
+    "2k": { width: 2560, height: 1440 },
+    "4k": { width: 3840, height: 2160 },
+  };
+
+  const { width, height } = resolutionMap[resolution];
   const [fontName, setFontName] = useState("Arial");
   const [fontSize, setFontSize] = useState(25);
   const [alpha, setAlpha] = useState(0.8);
@@ -28,8 +36,15 @@ export default function Home() {
   const getVideoInfoMutation = trpc.danmaku.getVideoInfo.useMutation({
     onSuccess: (data) => {
       setVideoInfo(data);
-      setWidth(data.dimension?.width || 1920);
-      setHeight(data.dimension?.height || 1080);
+      // Auto-detect resolution based on video dimension
+      const videoWidth = data.dimension?.width || 1920;
+      if (videoWidth >= 3840) {
+        setResolution("4k");
+      } else if (videoWidth >= 2560) {
+        setResolution("2k");
+      } else {
+        setResolution("1080p");
+      }
       toast.success("视频信息获取成功");
     },
     onError: (error) => {
@@ -185,22 +200,34 @@ export default function Home() {
               {/* Resolution */}
               <div className="space-y-4">
                 <Label className="text-lg font-black">分辨率</Label>
-                <div className="flex gap-4">
-                  <Input
-                    type="number"
-                    value={width}
-                    onChange={(e) => setWidth(Number(e.target.value))}
-                    className="border-2 border-black"
-                    placeholder="宽度"
-                  />
-                  <span className="text-2xl font-black">×</span>
-                  <Input
-                    type="number"
-                    value={height}
-                    onChange={(e) => setHeight(Number(e.target.value))}
-                    className="border-2 border-black"
-                    placeholder="高度"
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <Button
+                    type="button"
+                    variant={resolution === "1080p" ? "default" : "outline"}
+                    onClick={() => setResolution("1080p")}
+                    className="h-16 flex flex-col items-center justify-center text-lg font-black border-2 border-black"
+                  >
+                    <span>1080p</span>
+                    <span className="text-xs font-normal mt-1">1920×1080</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={resolution === "2k" ? "default" : "outline"}
+                    onClick={() => setResolution("2k")}
+                    className="h-16 flex flex-col items-center justify-center text-lg font-black border-2 border-black"
+                  >
+                    <span>2K</span>
+                    <span className="text-xs font-normal mt-1">2560×1440</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={resolution === "4k" ? "default" : "outline"}
+                    onClick={() => setResolution("4k")}
+                    className="h-16 flex flex-col items-center justify-center text-lg font-black border-2 border-black"
+                  >
+                    <span>4K</span>
+                    <span className="text-xs font-normal mt-1">3840×2160</span>
+                  </Button>
                 </div>
               </div>
 
