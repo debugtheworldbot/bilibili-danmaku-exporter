@@ -126,10 +126,10 @@ export default function Home() {
       {/* Main Content */}
       <div className="container flex-1 pb-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Row 1: Video URL Input and Video Info (side by side) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Row 1: Video URL Input (centered when no video info, side by side when video info exists) */}
+          <div className={videoInfo ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "flex justify-center"}>
             {/* Video URL Input */}
-            <Card className="border-4 border-black p-6 space-y-4">
+            <Card className={`border-4 border-black p-6 space-y-4 ${!videoInfo ? 'max-w-2xl w-full' : ''}`}>
               <Label className="text-xl font-black tracking-tight">
                 01 / 视频链接
               </Label>
